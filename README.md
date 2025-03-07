@@ -12,17 +12,17 @@ Assurez-vous d'avoir les outils suivants installés sur votre machine :
 - **Git**
 
 ## Installation et Configuration
-### 0. demarer le serveur web et mysql
-```bash
-docker run --name mpmt-maildev -d -p 1080:1080 -p 1025:1025 maildev/maildev
-docker run --name mpmt-mysql  -p 33061:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=true -d mysql
-docker exec -i mpmt-mysql mysql -u root < src/main/sql/db.sql
-```
-
 ### 1. Cloner le dépôt
 ```bash
 git clone https://github.com/Dupy007/MPMT-API.git
 cd MPMT-API
+```
+
+### 2. Demarer le serveur mail et mysql
+```bash
+docker run --name mpmt-maildev -d -p 1080:1080 -p 1025:1025 maildev/maildev
+docker run --name mpmt-mysql  -p 33061:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=true -d mysql
+docker exec -i mpmt-mysql mysql -u root < src/main/sql/db.sql
 ```
 
 ### 3. Construire et lancer l'application
