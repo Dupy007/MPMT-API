@@ -1,0 +1,45 @@
+version: '1.0'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_mpmt
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mpmt
+      MYSQL_USER: mpmt
+      MYSQL_PASSWORD: mpmt
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mail:
+    image: maildev/maildev
+    container_name: maildev_mpmt
+    restart: always
+    ports:
+      - "1025:1025"  # SMTP
+      - "1080:1080"  # Web UI
+
+  api:
+    build: .
+    container_name: api_mpmt
+    restart: always
+    depends_on:
+      - db
+      - mail
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/mpmt
+      SPRING_DATASOURCE_USERNAME: mpmt
+      SPRING_DATASOURCE_PASSWORD: mpmt
+      SPRING_MAIL_HOST: mail
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: your-username
+      SPRING_MAIL_PASSWORD: your-password
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:
