@@ -6,10 +6,10 @@ import com.dupy.MPMT.service.EmailService;
 import com.dupy.MPMT.service.TaskService;
 import com.dupy.MPMT.service.UserService;
 import com.dupy.MPMT.utils.Func;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -31,20 +31,19 @@ public class TaskController {
     private User u;
 
     @GetMapping("/task/all")
-    public List<Task> tasks(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        Func.canAcces(userService, auth);
+    public List<Task> tasks(HttpServletRequest request) {
         return taskService.findAll();
     }
 
     @GetMapping("/task")
-    public List<Task> myTasks(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public List<Task> myTasks(HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         return u.getTasks();
     }
 
     @GetMapping("/task/{id}")
-    public ResponseEntity<?> task(@PathVariable int id, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public ResponseEntity<?> task(@PathVariable int id, HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         task = taskService.find(id);
         if (task != null) {
             Func.canAccesProject(u, task.getProject().getId());
@@ -54,8 +53,8 @@ public class TaskController {
     }
 
     @PostMapping("/task")
-    public ResponseEntity<?> save(@Valid @RequestBody TaskCreate data, BindingResult bindingResult, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public ResponseEntity<?> save(@Valid @RequestBody TaskCreate data, BindingResult bindingResult, HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage));
         }
@@ -84,8 +83,8 @@ public class TaskController {
     }
 
     @PutMapping("/task/{id}")
-    public ResponseEntity<?> edit(@PathVariable int id, @RequestBody TaskEdit data, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public ResponseEntity<?> edit(@PathVariable int id, @RequestBody TaskEdit data, HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         task = taskService.find(id);
         Func.canEditTask(u, task.getProject().getId());
         if (task != null) {
@@ -126,8 +125,8 @@ public class TaskController {
     }
 
     @PutMapping("/task/{id}/assign")
-    public ResponseEntity<?> assign(@PathVariable int id, @RequestBody TaskEdit data, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public ResponseEntity<?> assign(@PathVariable int id, @RequestBody TaskEdit data, HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         task = taskService.find(id);
         Func.canEditTask(u, task.getProject().getId());
         if (task != null) {
@@ -142,7 +141,7 @@ public class TaskController {
                 desc += " => " + task.myString();
                 t.setDescription(desc);
                 t.setTask(task);
-                taskService.link(t);
+                task = taskService.link(t);
             }
             return ResponseEntity.ok(task);
         }

@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDateTime;
 
@@ -36,22 +35,24 @@ public class ProjectMember {
     @Size(min = 1, max = 3, message = "1=admin,2=membre,3=observateur")
     private String role;
 
-    public UserView getMember(){
+    public static ProjectMember parse(ProjectMemberCreate data) {
+        ProjectMember projectMember = new ProjectMember();
+        projectMember.setProject(data.getProject());
+        projectMember.setUser(data.getUser());
+        projectMember.setRole(data.getRole());
+        return projectMember;
+    }
+
+    public UserView getMember() {
         return UserView.parse(user);
     }
-    public String getRoleAttribute(){
+
+    public String getRoleAttribute() {
         return switch (role) {
             case "1" -> "admin";
             case "2" -> "member";
             case "3" -> "observateur";
             default -> role;
         };
-    }
-    public static ProjectMember parse(ProjectMemberCreate data){
-        ProjectMember projectMember  = new ProjectMember();
-        projectMember.setProject(data.getProject());
-        projectMember.setUser(data.getUser());
-        projectMember.setRole(data.getRole());
-        return projectMember;
     }
 }

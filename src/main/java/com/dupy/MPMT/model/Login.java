@@ -18,4 +18,10 @@ public class Login {
     private String email;
     @NotBlank(message = "Mot de passe non défini")
     private String password;
+
+    public Login(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
 }

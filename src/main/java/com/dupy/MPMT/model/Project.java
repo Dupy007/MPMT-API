@@ -2,10 +2,6 @@ package com.dupy.MPMT.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -14,15 +10,11 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
@@ -49,12 +41,15 @@ public class Project {
     private Date end_date;
     @JsonIgnore
     @OneToMany(mappedBy = "project")
-    private List<ProjectMember> projectMembers;
+    private List<ProjectMember> projectMembers = new ArrayList<>();
+    ;
     @OneToMany(mappedBy = "project")
-    private List<Task> tasks;
-    public List<UserView> getMembers(){
+    private List<Task> tasks = new ArrayList<>();
+    ;
+
+    public List<UserView> getMembers() {
         List<UserView> list = new ArrayList<>();
-        for (ProjectMember pm : projectMembers){
+        for (ProjectMember pm : projectMembers) {
             list.add(pm.getMember());
         }
         return list;

@@ -1,22 +1,14 @@
-## Utiliser une image Maven officielle pour builder l'application
-#FROM maven:3.8.5-openjdk-11 AS build
-#
-#WORKDIR /app
-#
-#COPY pom.xml .
-#COPY src ./src
-#
-#RUN mvn clean package -DskipTests
-#
-# Utiliser une image JDK pour exécuter l'application
-FROM mcr.microsoft.com/openjdk/jdk:21-distroless
+# Utiliser l'image officielle OpenJDK 21 comme base
+FROM openjdk:21-jdk-slim
 
-ENV LANG en_US.UTF-8
-ENV JAVA_HOME /usr/lib/jvm/msopenjdk-21-amd64
-ENV PATH "${JAVA_HOME}/bin:${PATH}"
+# Définir le répertoire de travail
+WORKDIR /app
 
-COPY ./target/MPMT-0.0.1.jar /MPMT.jar
+# Copier le fichier JAR généré dans le conteneur
+COPY target/*.jar app.jar
 
+# Exposer le port sur lequel l'application écoute (modifie si nécessaire)
 EXPOSE 8080
 
-CMD ["java", "-jar", "/MPMT.jar"]
+# Définir la commande de démarrage
+ENTRYPOINT ["java", "-jar", "app.jar"]

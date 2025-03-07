@@ -1,15 +1,18 @@
 package com.dupy.MPMT.controller;
 
 import com.dupy.MPMT.exception.EntityNotFoundException;
-import com.dupy.MPMT.model.*;
+import com.dupy.MPMT.model.Project;
+import com.dupy.MPMT.model.ProjectMember;
+import com.dupy.MPMT.model.ProjectMemberCreate;
+import com.dupy.MPMT.model.User;
 import com.dupy.MPMT.service.EmailService;
 import com.dupy.MPMT.service.ProjectService;
 import com.dupy.MPMT.service.UserService;
 import com.dupy.MPMT.utils.Func;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -32,18 +35,19 @@ public class ProjectController {
     private EmailService emailService;
 
     @GetMapping("/project/all")
-    public List<Project> projects(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        Func.canAcces(userService, auth);
+    public List<Project> projects(HttpServletRequest request) {
         return projectService.findAll();
     }
+
     @GetMapping("/project")
-    public List<Project> myProjects(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public List<Project> myProjects(HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         return u.getProjects();
     }
+
     @GetMapping("/project/{id}")
-    public ResponseEntity<?> project(@PathVariable int id, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public ResponseEntity<?> project(@PathVariable int id, HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         project = Func.canAccesProject(u, id);
 
         if (project != null) {
@@ -53,12 +57,11 @@ public class ProjectController {
     }
 
     @PostMapping("/project")
-    public ResponseEntity<?> save(@Valid @RequestBody Project data, BindingResult bindingResult, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
-
+    public ResponseEntity<?> save(@Valid @RequestBody Project data, BindingResult bindingResult, HttpServletRequest request) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage));
         }
+        u = userService.findByUsername((String) request.getAttribute("username"));
         project = projectService.save(data);
         if (project != null) {
             ProjectMember member = new ProjectMember();
@@ -72,8 +75,8 @@ public class ProjectController {
     }
 
     @PutMapping("/project/{id}")
-    public ResponseEntity<?> edit(@PathVariable int id, @RequestBody Project data, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public ResponseEntity<?> edit(@PathVariable int id, @RequestBody Project data, HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         project = Func.canEditProject(u, id);
         if (project != null) {
             if (data.getName() != null) {
@@ -95,8 +98,8 @@ public class ProjectController {
     }
 
     @PostMapping("/project/{id}/link")
-    public ResponseEntity<?> link(@PathVariable int id, @RequestBody @Valid ProjectMemberCreate data, BindingResult bindingResult, @RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        u = Func.canAcces(userService, auth);
+    public ResponseEntity<?> link(@PathVariable int id, @RequestBody @Valid ProjectMemberCreate data, BindingResult bindingResult, HttpServletRequest request) {
+        u = userService.findByUsername((String) request.getAttribute("username"));
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage));
         }
@@ -106,7 +109,7 @@ public class ProjectController {
             if (data.getUser().getId() > 0) {
                 user = userService.find(data.getUser().getId());
             } else if (data.getUser().getEmail() != null) {
-                user = userService.findByMailOrUsername(data.getUser().getEmail());
+                user = userService.findByEmail(data.getUser().getEmail());
             }
             if (user == null) {
                 List<String> errors = new ArrayList<>();
@@ -126,10 +129,12 @@ public class ProjectController {
     public void createMember(ProjectMember member) {
         Project p = projectService.find(member.getProject().getId());
         ProjectMember projectMember = null;
-        for (ProjectMember pm : p.getProjectMembers()) {
-            if (pm.getUser().getId() == member.getUser().getId() && pm.getProject().getId() == member.getProject().getId()) {
-                projectMember = pm;
-                break;
+        if (p.getProjectMembers() != null) {
+            for (ProjectMember pm : p.getProjectMembers()) {
+                if (pm.getUser().getId() == member.getUser().getId() && pm.getProject().getId() == member.getProject().getId()) {
+                    projectMember = pm;
+                    break;
+                }
             }
         }
         if (projectMember == null) projectMember = member;
@@ -139,8 +144,7 @@ public class ProjectController {
             String msg = "You have been added to " + project.getName() + " project";
             String obj = "New Project";
             emailService.sendEmail(projectMember.getUser().getEmail(), obj, msg);
-
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }

@@ -38,10 +38,9 @@ public class User {
     private String password;
     @JsonIgnore
     @OneToMany(mappedBy = "user")
-    private List<ProjectMember> projectMembers;
-    private String token;
+    private List<ProjectMember> projectMembers = new ArrayList<>();
     @OneToMany(mappedBy = "assigned")
-    private List<Task> tasks;
+    private List<Task> tasks = new ArrayList<>();
 
     public static User parse(Register data) {
         User u = new User();
@@ -50,9 +49,10 @@ public class User {
         u.setPassword(data.getPassword());
         return u;
     }
-    public List<Project> getProjects(){
+
+    public List<Project> getProjects() {
         List<Project> projects = new ArrayList<>();
-        for (ProjectMember project1 : this.getProjectMembers()){
+        for (ProjectMember project1 : this.getProjectMembers()) {
             projects.add(project1.getProject());
         }
         return projects;

@@ -2,7 +2,6 @@ package com.dupy.MPMT.service;
 
 import com.dupy.MPMT.dao.UserRepository;
 import com.dupy.MPMT.model.User;
-import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +23,12 @@ public class UserService {
     public User save(User data) {
         return repository.save(data);
     }
-    public User findByMailOrUsername(String value){
-        for (User u : findAll()) {
-            if (u.getEmail().equals(value) || u.getUsername().equals(value)) {
-                return u;
-            }
-        }
-        return null;
+
+    public User findByUsername(String value) {
+        return repository.findByUsername(value).orElse(null);
+    }
+
+    public User findByEmail(String value) {
+        return repository.findByEmail(value).orElse(null);
     }
 }

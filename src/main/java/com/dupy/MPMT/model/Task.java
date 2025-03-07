@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -33,12 +34,12 @@ public class Task {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date end_date;
     @OneToMany(mappedBy = "task")
-    private List<TaskHistory> taskHistory;
+    private List<TaskHistory> taskHistory = new ArrayList<>();
     @ManyToOne
     @JoinColumn(name = "fk_project", nullable = false)
     @JsonIgnore
     private Project project;
-    @JsonIgnore
+//    @JsonIgnore
     @ManyToOne
     @Nullable
     @JoinColumn(name = "assigned")
@@ -71,8 +72,8 @@ public class Task {
         return project.getId();
     }
 
-    public UserView getAssign() {
-        if (assigned!=null){
+    public UserView getAssigned() {
+        if (assigned != null) {
             return UserView.parse(assigned);
         }
         return null;

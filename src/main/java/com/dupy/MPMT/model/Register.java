@@ -29,4 +29,9 @@ public class Register {
     private String password;
     private String token;
 
+    public Register(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
 }
